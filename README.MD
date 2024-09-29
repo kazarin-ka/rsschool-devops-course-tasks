@@ -20,6 +20,8 @@ This project describes the **initial infrastructure setup** needed for managing 
 - An **S3 bucket** for storing Terraform state files.
 - A **DynamoDB table** for handling state locks to ensure safe concurrent operations.
 
+**Note:** Creation of your infrastructure must be started from this folder's code applying!
+
 #### b. `iam/`
 This project handles the **Identity and Access Management (IAM)** setup. Currently, it includes:
 - **Users** and basic **IAM policies**.
