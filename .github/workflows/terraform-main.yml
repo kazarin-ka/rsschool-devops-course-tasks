@@ -1,0 +1,272 @@
+name: Terraform Main Workflow
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+env:
+  TERRAFORM_VERSION: '1.9.6'
+  AWS_REGION_ID: 'eu-west-1'
+
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+  terraform-check-init:
+    name: Terraform Format Check INIT
+    env:
+      working_directory: './terraform/init'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Check Terraform format
+        working-directory: ${{env.working_directory}}
+        run: |
+          terraform fmt -check
+
+  terraform-check-iam:
+    name: Terraform Format Check IAM
+    env:
+      working_directory: './terraform/iam'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Check Terraform format
+        working-directory: ${{env.working_directory}}
+        run: |
+          terraform fmt -check
+
+  terraform-plan-init:
+    needs: terraform-check-init
+    name: Terraform Plan INIT
+    env:
+      working_directory: './terraform/init'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Terraform Plan
+        working-directory: ${{env.working_directory}}
+        run: |
+          terraform plan -out=tfplan -input=false -var-file *.tfvars
+
+      - name: Upload Terraform Plan file
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan_init
+          path: ${{env.working_directory}}/tfplan
+          retention-days: 5
+
+#  terraform-plan-iam:
+#    needs: terraform-check-iam
+#    uses: ./.github/workflows/terraform-plan.yml
+#    with:
+#      terraform_version: $TERRAFORM_VERSION
+#      aws-region: $ AWS_REGION
+#      working_directory: './terraform/iam'
+
+  terraform-plan-iam:
+    needs: terraform-check-iam
+    name: Terraform Plan IAM
+    env:
+      working_directory: './terraform/iam'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Terraform Plan
+        working-directory: ${{env.working_directory}}
+        run: |
+          terraform plan -out=tfplan -input=false -var-file *.tfvars
+
+      - name: Upload Terraform Plan file
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan_iam
+          path: ${{env.working_directory}}/tfplan
+          retention-days: 5
+
+
+  terraform-apply-init:
+    if: github.event_name == 'push'
+    needs: terraform-plan-init
+    name: Terraform Apply INIT
+    env:
+      working_directory: './terraform/init'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Download Terraform Plan file
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan_init
+          path: ${{env.working_directory}}
+
+      - name: Terraform Apply
+        working-directory: ${{env.working_directory}}
+        run: |
+          terraform apply -input=false tfplan
+#
+#  terraform-apply-iam:
+#    if: github.event_name == 'push'
+#    needs: terraform-plan-iam
+#    uses: ./.github/workflows/terraform-apply.yml
+#    with:
+#      terraform_version: $TERRAFORM_VERSION
+#      aws-region: $ AWS_REGION
+#      working_directory: './terraform/iam'
+
+  terraform-apply-iam:
+    if: github.event_name == 'push'
+    needs: terraform-plan-iam
+    name: Terraform Apply IAM
+    env:
+      working_directory: './terraform/iam'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Download Terraform Plan file
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan_iam
+          path: ${{env.working_directory}}
+
+      - name: Terraform Apply
+        working-directory: ${{env.working_directory}}
+        run: |
+          terraform apply -input=false tfplan
