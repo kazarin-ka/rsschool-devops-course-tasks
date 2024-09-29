@@ -171,7 +171,7 @@ jobs:
 
 
   terraform-apply-init:
-    if: github.event_name == 'push'
+    #if: github.event_name == 'push'
     needs: terraform-plan-init
     name: Terraform Apply INIT
     env:
@@ -213,7 +213,7 @@ jobs:
           terraform apply -input=false tfplan
 
   terraform-apply-iam:
-    if: github.event_name == 'push'
+    #if: github.event_name == 'push'
     needs: terraform-plan-iam
     name: Terraform Apply IAM
     env:
