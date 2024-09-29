@@ -1,69 +1,34 @@
 # Terraform Deployment using GitHub Actions
 
 This repository uses **GitHub Actions** to manage infrastructure deployment with **Terraform**. 
-The workflow is broken down into several steps: **format checking**, **planning**, and **applying** 
-Terraform configurations. These steps are modularized into separate workflows for better organization 
-and maintainability.
+The workflow includes several steps: **format checking**, **planning**, and **applying** 
+Terraform configurations. These steps are described in single file for the first time becaus 
+it's my first exp with github worflow.
 
 ## Workflow Structure
 
-The workflows are divided into three separate files for each stage of the Terraform deployment 
-process:
-
-1. **Terraform Check** (`terraform-check.yml`): Checks the format of Terraform files.
-2. **Terraform Plan** (`terraform-plan.yml`): Generates a Terraform plan to preview 
-infrastructure changes.
-3. **Terraform Apply** (`terraform-apply.yml`): Applies the changes to the infrastructure.
-
-The main workflow `terraform-main.yml` calls these individual workflows and coordinates the process.
-
-### Files Overview:
-
-- **`.github/workflows/terraform-check.yml`**: 
-  - Validates the formatting of Terraform configuration files using `terraform fmt -check`.
-  - Runs in both `init` and `iam` subdirectories.
-  
-- **`.github/workflows/terraform-plan.yml`**:
-  - Runs `terraform plan` to preview the changes for both `init` and `iam` subdirectories.
-  
-- **`.github/workflows/terraform-apply.yml`**:
-  - Executes `terraform apply -auto-approve` to deploy changes to the infrastructure when 
-  changes are pushed to the `main` branch.
-
-- **`.github/workflows/terraform-main.yml`**:
-  - The main workflow that orchestrates the other workflows, ensuring the steps are executed in order:
-    - **Check**: Validates formatting.
-    - **Plan**: Previews the changes.
-    - **Apply**: Deploys the changes (only on `push` events).
+In general. workflow file inclused 2 separate parralel flow - for Init and IAM projects
+The main workflow `terraform-main.yml` file include pipeline description for both.
 
 ## Workflow Details
 
 ### 1. Terraform Check
 
-- **Path**: `.github/workflows/terraform-check.yml`
 - **Description**: This workflow checks the formatting of the Terraform code 
 using `terraform fmt -check`.
 - **Usage**: It runs on both `init` and `iam` subdirectories.
 
 ### 2. Terraform Plan
 
-- **Path**: `.github/workflows/terraform-plan.yml`
 - **Description**: This workflow generates a Terraform plan to show potential changes to the 
-infrastructure.
+infrastructure. It also saves plan results in output artifact for each step to apply on the next step
 - **Usage**: It runs on both `init` and `iam` subdirectories after the `terraform-check` job.
 
 ### 3. Terraform Apply
 
-- **Path**: `.github/workflows/terraform-apply.yml`
 - **Description**: This workflow applies the Terraform configuration changes to the infrastructure. 
-It is triggered only on a `push` event to the `main` branch.
+It is triggered only on a `push` event to the `main` branch. It will aplly only changes saved as artifacts on the previous steps
 - **Usage**: It runs after the `terraform-plan` job for both `init` and `iam` subdirectories.
-
-### 4. Terraform Main
-
-- **Path**: `.github/workflows/terraform-main.yml`
-- **Description**: The main workflow file that coordinates the other workflows. 
-It ensures that `terraform-check`, `terraform-plan`, and `terraform-apply` jobs run in sequence.
 
 ## Running the Workflow
 
@@ -82,19 +47,13 @@ and `terraform-plan`, the `terraform-apply` step is run to deploy the changes.
 
 - **Terraform Plan**:
   ```bash
-  terraform plan
+  terraform plan -out=tfplan -input=false -var-file *.tfvars
   ```
   
 - **Terraform Apply**:
   ```bash
-  terraform apply -auto-approve
+  terraform apply -input=false tfplan
   ```
-  
-## How to Modify
-- To modify a specific part of the workflow (e.g., check, plan, or apply), 
-update the corresponding YAML file under `.github/workflows/`.
-- The main workflow (`terraform-main.yml`) will automatically call the individual 
-workflows in the correct sequence.
 
 ## How to Modify
 - **Terraform version:** You can update the Terraform version used by editing the 
