@@ -191,6 +191,11 @@ jobs:
           terraform version
           terraform init
 
+      - name: Set environment variables
+        run: export TF_VAR_ssh_public_key=$SSH_PUBLIC_KEY
+        env:
+          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+
       - name: Terraform Plan
         working-directory: ${{env.working_directory}}
         run: |
@@ -325,6 +330,11 @@ jobs:
           name: tfplan_init
           path: ${{env.working_directory}}
 
+      - name: Set environment variables
+        run: export TF_VAR_ssh_public_key=$SSH_PUBLIC_KEY
+        env:
+          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+          
       - name: Terraform Apply
         working-directory: ${{env.working_directory}}
         run: |
