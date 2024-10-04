@@ -85,11 +85,87 @@ jobs:
         run: |
           terraform fmt -check
 
+  terraform-check-network-core:
+    name: Terraform Format Check Network Core
+    env:
+      working_directory: './terraform/network-core'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Check Terraform format
+        working-directory: ${{env.working_directory}}
+        run: |
+          terraform fmt -check
+
   terraform-plan-init:
     needs: terraform-check-init
     name: Terraform Plan INIT
     env:
       working_directory: './terraform/init'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Terraform Plan
+        working-directory: ${{env.working_directory}}
+        run: |
+          terraform plan -out=tfplan -input=false -var-file *.tfvars
+
+      - name: Upload Terraform Plan file
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan_init
+          path: ${{env.working_directory}}/tfplan
+          retention-days: 5
+
+  terraform-plan-network-core:
+    needs: terraform-check-network-core
+    name: Terraform Plan Network Core
+    env:
+      working_directory: './terraform/network-core'
     runs-on: ubuntu-latest
     steps:
       - name: Set up Terraform
@@ -211,6 +287,48 @@ jobs:
         working-directory: ${{env.working_directory}}
         run: |
           terraform apply -input=false tfplan
+
+  terraform-apply-network-core:
+    #if: github.event_name == 'push'
+    needs: terraform-plan-network-core
+    name: Terraform Apply Network Core
+    env:
+      working_directory: './terraform/network-core'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Download Terraform Plan file
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan_init
+          path: ${{env.working_directory}}
+
+      - name: Terraform Apply
+        working-directory: ${{env.working_directory}}
+        run: |
+          terraform apply -input=false tfplan 
 
   terraform-apply-iam:
     #if: github.event_name == 'push'
