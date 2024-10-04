@@ -12,7 +12,7 @@ resource "aws_dynamodb_table" "terraform" {
 
   tags = merge(tomap({
     name = var.dynamodb_tables[count.index],
-    type = "database"}),
+    type = "database" }),
     local.infra_tags,
   )
 }

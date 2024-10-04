@@ -4,7 +4,7 @@ resource "aws_s3_bucket" "terraform" {
 
   tags = merge(tomap({
     name = var.s3_bucket_name,
-    type = "storage"}),
+    type = "storage" }),
     local.infra_tags,
   )
 
