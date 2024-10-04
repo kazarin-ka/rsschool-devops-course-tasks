@@ -10,6 +10,12 @@ variable "env_owner" {
   description = "Who own infrastructure and project. No spaces, only lower case. Underscore is acceptable"
 }
 
+variable "default_description" {
+  type        = string
+  default     = "DO NOT EDIT MANUALLY! Managed By Terraform!"
+  description = "A standard warning added to the description of all resources so that engineers do not think about changing them manually"
+}
+
 variable "dynamodb_tables" {
   type        = list(any)
   description = "List of DynamoDB tables to store terraform Locks"
