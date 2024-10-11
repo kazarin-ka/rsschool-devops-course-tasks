@@ -2,9 +2,11 @@
 resource "aws_network_acl" "main" {
   vpc_id = aws_vpc.main.id
 
-  tags = {
-    Name = "My Network ACL - Allow All"
-  }
+  tags = merge(tomap({
+    Name = "${var.env_owner}-${var.env_type}-Allow_All",
+    type = "network" }),
+    local.infra_tags
+  )
 }
 
 # NACL rule to allow all incoming traffic (Ingress)

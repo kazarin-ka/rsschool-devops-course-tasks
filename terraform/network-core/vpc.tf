@@ -9,7 +9,7 @@ resource "aws_vpc" "main" {
 
   tags = merge(tomap({
     Name = "${var.env_owner}-${var.env_type}",
-    type = "storage" }),
+    type = "network" }),
     local.infra_tags
   )
 }

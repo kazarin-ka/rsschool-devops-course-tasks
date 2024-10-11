@@ -26,7 +26,13 @@ packages:
  - iotop
  - jq
 
-## Only for VPN server pecause it's public
+# For bastion/VPN service configuration - SSH will use alternative port 32100/tcp
+runcmd:
+  - sed -i 's/^#Port 22/Port 32100/' /etc/ssh/sshd_config
+  - systemctl restart ssh
+
+## Alternative way - change whole config
+#cloud-config
 #write_files:
 #  - path: /etc/ssh/sshd_config
 #    content: |
@@ -52,12 +58,15 @@ packages:
 #      HostbasedAuthentication no
 #      PermitEmptyPasswords no
 #      KbdInteractiveAuthentication no
-#      PermitRootLogin No
 #      UsePAM yes
 #      X11Forwarding yes
 #      PrintMotd no
 #      PrintLastLog yes
 #      TCPKeepAlive yes
 #      AcceptEnv LANG LC_*
-#      Subsystem	sftp	/usr/lib/openssh/sftp-server
+#      Subsystem    sftp    /usr/lib/openssh/sftp-server
 #      PasswordAuthentication no
+#
+#runcmd:
+#  - systemctl restart ssh
+
