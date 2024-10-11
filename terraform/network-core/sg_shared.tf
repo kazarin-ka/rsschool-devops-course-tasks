@@ -54,9 +54,9 @@ resource "aws_security_group" "vpn" {
   }
   ingress {
     description = "icmp ping and other messages are allowed"
-    from_port = -1
-    to_port = -1
-    protocol = "icmp"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
     cidr_blocks = var.admins_ips
   }
 
@@ -104,9 +104,9 @@ resource "aws_security_group" "ec2_verification" {
 
   ingress {
     description = "icmp ping and other messages are allowed"
-    from_port = -1
-    to_port = -1
-    protocol = "icmp"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
     cidr_blocks = var.admins_ips
   }
 

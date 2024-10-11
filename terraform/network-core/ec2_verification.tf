@@ -4,11 +4,11 @@
 resource "aws_instance" "private_instances" {
   count = var.create_ec2_verifications_instances ? length(local.private_subnets) : 0
 
-  ami           = data.aws_ami.ubuntu_24_04.id
-  instance_type = "t3a.nano"
-  subnet_id     = local.private_subnets[count.index].subnet_id
+  ami             = data.aws_ami.ubuntu_24_04.id
+  instance_type   = "t3a.nano"
+  subnet_id       = local.private_subnets[count.index].subnet_id
   security_groups = [aws_security_group.ec2_verification.id]
-  tenancy       = var.vpc_settings.instance_tenancy
+  tenancy         = var.vpc_settings.instance_tenancy
   user_data = templatefile("cloud_init_verification.yaml", {
     ssh_public_key = var.ssh_public_key
   })
@@ -29,11 +29,11 @@ resource "aws_instance" "private_instances" {
 resource "aws_instance" "database_instances" {
   count = var.create_ec2_verifications_instances ? length(local.database_subnets) : 0
 
-  ami           = data.aws_ami.ubuntu_24_04.id
-  instance_type = "t3a.nano"
-  subnet_id     = local.database_subnets[count.index].subnet_id
+  ami             = data.aws_ami.ubuntu_24_04.id
+  instance_type   = "t3a.nano"
+  subnet_id       = local.database_subnets[count.index].subnet_id
   security_groups = [aws_security_group.ec2_verification.id]
-  tenancy       = var.vpc_settings.instance_tenancy
+  tenancy         = var.vpc_settings.instance_tenancy
   user_data = templatefile("cloud_init_verification.yaml", {
     ssh_public_key = var.ssh_public_key
   })

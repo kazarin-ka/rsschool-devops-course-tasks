@@ -191,20 +191,17 @@ jobs:
           terraform version
           terraform init
 
-      - name: Set environment variables
-        run: export TF_VAR_ssh_public_key=$SSH_PUBLIC_KEY
-        env:
-          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
-
       - name: Terraform Plan
         working-directory: ${{env.working_directory}}
+        env:
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }} # Set environment variables
         run: |
           terraform plan -out=tfplan -input=false -var-file *.tfvars
 
       - name: Upload Terraform Plan file
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan_init
+          name: tfplan_network_core
           path: ${{env.working_directory}}/tfplan
           retention-days: 5
 
@@ -327,16 +324,13 @@ jobs:
       - name: Download Terraform Plan file
         uses: actions/download-artifact@v4
         with:
-          name: tfplan_init
+          name: tfplan_network_core
           path: ${{env.working_directory}}
 
-      - name: Set environment variables
-        run: export TF_VAR_ssh_public_key=$SSH_PUBLIC_KEY
-        env:
-          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
-          
       - name: Terraform Apply
         working-directory: ${{env.working_directory}}
+        env:
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }} # Set environment variables
         run: |
           terraform apply -input=false tfplan 
 
