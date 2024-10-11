@@ -38,6 +38,13 @@ variable "ssh_public_key" {
   sensitive   = true
 }
 
+# Variable which manage creation ec2 instances for network instance connectivity and routing
+variable "create_ec2_verifications_instances" {
+  description = "Flag to create EC2 instances in non-public subnets"
+  type        = bool
+  default     = false
+}
+
 variable "vpc_settings" {
   #  type = map(any)
   description = "Basic VPC settings, described as a dictionary"

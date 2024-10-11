@@ -1,8 +1,8 @@
 env_type          = "dev"
 env_owner         = "kirill.kazarin"
 dns_zone_external = "rss.kirill.kazarin.edu"
-# ssh_public_key = Myst be set as "export TF_VAR_ssh_public_key"
-
+# ssh_public_key = <Myst be set as "export TF_VAR_ssh_public_key">
+# create_ec2_verifications_instances = true
 vpc_settings = {
   ipv4_cidr_block      = "10.0.0.0/16"
   instance_tenancy     = "default"
