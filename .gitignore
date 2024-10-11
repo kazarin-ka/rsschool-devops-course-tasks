@@ -4,3 +4,4 @@
 *.log
 *.tfstate
 *.tfstate.backup
+tfplan
