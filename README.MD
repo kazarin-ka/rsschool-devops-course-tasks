@@ -32,9 +32,26 @@ In the future, this project will also manage:
 
 By separating the `init` and `iam` Terraform projects, we achieve better code organization and reduce potential risks. For example, an error in the IAM configuration or a mistake in editing the GitHub Actions workflow would not directly impact the more sensitive components of the infrastructure, such as the state management in the `init` project.
 
+#### c. `network-core/`
+This project handle core(basic) network infrastructure, including:
+- vpc
+- networks
+- routing tables
+- Internet gateway
+- Nat Gateway
+- bastion/vpn host
+- Network ACL
+- Route53 (DNS) zones
+
+Separating this project from `init` and `iam` Terraform projects (and other ones in future) 
+decrease the blast radius in case of any mistakes with terraform code.
+And we can achieve better code organization and reduce potential risks. 
+For example, an error in the IAM configuration or a mistake in editing the GitHub Actions workflow would not directly impact the more sensitive components of the infrastructure, such as the network infrastructure.
+
+
 ## Rationale for Separation
 
-The `init` and `iam` projects are separated to provide:
+The `network-core`, `init` and `iam` projects are separated to provide:
 - **Better management of infrastructure components**: Keeping the state management (S3 bucket and DynamoDB) separate from IAM-related configurations allows for easier maintenance.
 - **Isolation of failures**: If an error occurs in one project, it will not affect the other. For example, a mistake in the `iam` project would not impact the critical infrastructure that manages Terraform states and locks.
 - **Smaller blast radius**: In case of a failure in code or workflow, the impact is limited to the scope of the project, reducing the overall risk to the infrastructure.
@@ -45,3 +62,4 @@ The `init` and `iam` projects are separated to provide:
 - **Terraform Projects**:
   - `init/`: Run this project first to set up the initial infrastructure for managing Terraform states.
   - `iam/`: Once the initial infrastructure is in place, manage users, policies, and roles here.
+  - `network-core/`:  Once the initial infrastructure is in place, manage any network related items here

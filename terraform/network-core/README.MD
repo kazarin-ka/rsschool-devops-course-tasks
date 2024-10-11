@@ -145,29 +145,38 @@ networks = [
   }
 ]
 ```
-3. **Initialize Terraform**:
+3. **Enable availability verification**:
+
+If you will need to check availability (routing, connectivity) between your networks
+you can enable creating additional EC2 instances inside private networks. 
+It could be done with `create_ec2_verifications_instances = true` flag
+
+See `ec2_verification.tf` for reference
+
+
+4**Initialize Terraform**:
 ```bash
 terraform init
 ```
-4. **Plan the infrastructure**:
+5**Plan the infrastructure**:
 Run the following command to review the changes Terraform will make:
 ```bash
 export export TF_VAR_ssh_public_key="ssh pub key for system administrator account"
 terraform plan -var-file="var.tfvars"
 ```
 
-5. **Apply the infrastructure**:
+6**Apply the infrastructure**:
 Apply the changes to provision the infrastructure
 ```bash
 export export TF_VAR_ssh_public_key="ssh pub key for system administrator account"
 terraform apply -var-file="var.tfvars"
 ```
 
-6. **Access the VPN Bastion EC2 instance**:
+7**Access the VPN Bastion EC2 instance**:
 After the infrastructure is created, you can access the VPN Bastion server via SSH:
 ```bash
 ssh -i path_to_your_private_key system.administrator@<public_ip_of_bastion>
 ```
 
-7. **License**:
-This project is licensed under the MIT License. See the LICENSE file for details.
+8**License**:
+This project is licensed under the MIT License. 
