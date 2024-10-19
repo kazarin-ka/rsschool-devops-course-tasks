@@ -20,4 +20,5 @@ data "aws_ami" "ubuntu_24_04" {
 
 output "ubuntu_24_04_ami_id" {
   value = data.aws_ami.ubuntu_24_04.id
+  description = "ID of AWS AMI for ubuntu 24.04"
 }

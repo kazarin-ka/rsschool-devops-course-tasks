@@ -13,3 +13,13 @@ resource "aws_vpc" "main" {
     local.infra_tags
   )
 }
+
+output "vpc_id" {
+  value = aws_vpc.main.id
+  description = "aws vpc id"
+}
+
+output "vpc_cidr" {
+  value = aws_vpc.main.cidr_block
+  description = "aws vpc primary block of ip addresses - cidr"
+}
