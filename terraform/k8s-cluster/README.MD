@@ -70,3 +70,74 @@ To destroy the provisioned infrastructure and clean up resources, run:
 ```bash
 terraform destroy
 ```
+
+## How to connect to remote k3s cluster
+
+### Login via ssh through Bastion host
+Define your bastion host IP ( public host) and k8s host (private ip)
+
+For example:
+```bash
+SSH_PUBLIC_HOST_ADDR="1.1.1.1"
+SSH_PRIVATE_HOST_ADDR="192.168.10.10"
+```
+
+Create background ssh connection to bastion host with port forwarding:
+```bash
+ssh -f -N -L 2222:${SSH_PRIVATE_HOST_ADDR}:22 -p <bastion ssh port> <login>@${SSH_PUBLIC_HOST_ADDR} -i <ssh key path>
+```
+
+connect via ssh to your k3s host:
+```bash
+ssh -p 2222 <login>@127.0.0.1 -i <ssh key path>
+```
+
+### Forward kube api port via ssh
+
+Define your bastion host IP ( public host) and k8s host (private ip)
+
+For example:
+```bash
+SSH_PUBLIC_HOST_ADDR="1.1.1.1"
+SSH_PRIVATE_HOST_ADDR="192.168.10.10"
+```
+
+Create background ssh connection to bastion host with port forwarding:
+```bash
+ssh -f -N -L 2222:${SSH_PRIVATE_HOST_ADDR}:22 -L 6443:${SSH_PRIVATE_HOST_ADDR}:6443 -p <bastion ssh port> <login>@${SSH_PUBLIC_HOST_ADDR} -i <ssh key path>
+```
+Connect to k3s host via ssh and copy k3s config to your local machine.
+Default path is: `/etc/rancher/k3s/k3s.yaml`
+
+On your local machine, test that Kupe api port (6443) became avaliable:
+```bash
+curl -k https://localhost:6443
+# Answer must be:
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {},
+  "status": "Failure",
+  "message": "Unauthorized",
+  "reason": "Unauthorized",
+  "code": 401
+}
+```
+Set env variable with path to k3s config file on your local machine:
+```bash
+export KUBECONFIG=/<path to file>/k3s.yaml
+```
+
+And now try to use `kubectl` in the same terminal window:
+```bash
+kubectl get nodes
+kubectl get pods -A
+```
+
+### Finish your connection
+Apply following commands when you finished
+```bash
+killall ssh
+ssh-keygen -R [127.0.0.1]:2222
+```
+
