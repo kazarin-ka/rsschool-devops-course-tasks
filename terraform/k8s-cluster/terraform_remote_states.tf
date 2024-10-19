@@ -4,8 +4,8 @@
 data "terraform_remote_state" "network-core" {
   backend = "s3"
   config = {
-    bucket         = "ka-kazarin-edu-eu-west-1-tfstates"
-    key            = "network-core.tfstate"
-    region         = "eu-west-1" # Ireland
+    bucket = "ka-kazarin-edu-eu-west-1-tfstates"
+    key    = "network-core.tfstate"
+    region = "eu-west-1" # Ireland
   }
 }

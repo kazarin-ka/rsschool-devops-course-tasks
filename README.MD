@@ -48,10 +48,21 @@ decrease the blast radius in case of any mistakes with terraform code.
 And we can achieve better code organization and reduce potential risks. 
 For example, an error in the IAM configuration or a mistake in editing the GitHub Actions workflow would not directly impact the more sensitive components of the infrastructure, such as the network infrastructure.
 
+#### c. `k8s-cluster`
+This repository contains Terraform code to provision a Kubernetes infrastructure using K3s on EC2 instances. 
+It automates the setup of both master and worker nodes, including monitoring integration with Grafana Cloud.
+
+Basically it consists of:
+ - cloud-init config file for nodes (template for rendering)
+ - k8s/k3s master nodes
+ - k8s/k3s worker nodes
+ - k8s/k3s security group
+
+Separating this project from `init` and `iam` Terraform projects has same sense as others
 
 ## Rationale for Separation
 
-The `network-core`, `init` and `iam` projects are separated to provide:
+The `k8s-cluster`, `network-core`, `init` and `iam` projects are separated to provide:
 - **Better management of infrastructure components**: Keeping the state management (S3 bucket and DynamoDB) separate from IAM-related configurations allows for easier maintenance.
 - **Isolation of failures**: If an error occurs in one project, it will not affect the other. For example, a mistake in the `iam` project would not impact the critical infrastructure that manages Terraform states and locks.
 - **Smaller blast radius**: In case of a failure in code or workflow, the impact is limited to the scope of the project, reducing the overall risk to the infrastructure.
@@ -62,4 +73,5 @@ The `network-core`, `init` and `iam` projects are separated to provide:
 - **Terraform Projects**:
   - `init/`: Run this project first to set up the initial infrastructure for managing Terraform states.
   - `iam/`: Once the initial infrastructure is in place, manage users, policies, and roles here.
-  - `network-core/`:  Once the initial infrastructure is in place, manage any network related items here
+  - `network-core/`:  Once the initial infrastructure is in place, manage any network related items here.
+  - `k8s-cluster`: Once the initial and network infrastructures are in place, manage k8s infra here.

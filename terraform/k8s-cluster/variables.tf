@@ -45,8 +45,8 @@ variable "k8s_master_node_tenancy" {
 variable "k8s_master_node_disk" {
   description = "disk type for k8s node"
   default = {
-    size      = 30
-    type     = "gp3"
+    size = 30
+    type = "gp3"
   }
 }
 
@@ -69,8 +69,8 @@ variable "k8s_worker_node_tenancy" {
 variable "k8s_worker_node_disk" {
   description = "disk type for k8s node"
   default = {
-    size      = 50
-    type     = "gp3"
+    size = 50
+    type = "gp3"
   }
 }
 
