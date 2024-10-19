@@ -4,17 +4,17 @@ This repository contains Terraform code to provision a Kubernetes infrastructure
 
 ## Repository Structure
 
-- README.md: Documentation for this setup.
-- cloud_init_k3s.yaml: Cloud-init script that configures the K3s nodes and integrates them with Grafana Cloud for monitoring.
-- ec2_k3s_master_nodes.tf: Terraform configuration for creating EC2 instances for the K3s master nodes.
-- ec2_k3s_worker_nodes.tf: Terraform configuration for creating EC2 instances for the K3s worker nodes.
-- locals.tf: Local variables used throughout the Terraform code.
-- providers.tf: Provider configurations for Terraform, defining which cloud provider to use.
-- sg.tf: Security group definitions for allowing access to the EC2 instances and K3s API.
-- terraform-state.tf: Configuration for storing Terraform's state, either locally or remotely.
-- terraform_remote_states.tf: Remote state configuration for storing and retrieving states.
-- var.tfvars: File containing values for the Terraform variables.
-- variables.tf: Variable definitions for the Terraform setup.
+- `README.md`: Documentation for this setup.
+- `cloud_init_k3s.yaml`: Cloud-init script that configures the K3s nodes and integrates them with Grafana Cloud for monitoring.
+- `ec2_k3s_master_nodes.tf`: Terraform configuration for creating EC2 instances for the K3s master nodes.
+- `ec2_k3s_worker_nodes.tf`: Terraform configuration for creating EC2 instances for the K3s worker nodes.
+- `locals.tf`: Local variables used throughout the Terraform code.
+- `providers.tf`: Provider configurations for Terraform, defining which cloud provider to use.
+- `sg.tf`: Security group definitions for allowing access to the EC2 instances and K3s API.
+- `terraform-state.tf`: Configuration for storing Terraform's state, either locally or remotely.
+- `terraform_remote_states.tf`: Remote state configuration for storing and retrieving states.
+- `var.tfvars`: File containing values for the Terraform variables.
+- `variables.tf`: Variable definitions for the Terraform setup.
 
 ## Purpose
 
