@@ -375,3 +375,132 @@ jobs:
         working-directory: ${{env.working_directory}}
         run: |
           terraform apply -input=false tfplan
+
+###########
+  terraform-check-k8s-cluster:
+    name: Terraform Format Check K8S cluster infra
+    env:
+      working_directory: './terraform/k8s-cluster'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Check Terraform format
+        working-directory: ${{env.working_directory}}
+        run: |
+          terraform fmt -check
+
+  terraform-plan-k8s-cluster:
+    needs:
+     - terraform-check-k8s-cluster
+     - terraform-apply-network-core
+    name: Terraform Plan K8S cluster infra
+    env:
+      working_directory: './terraform/k8s-cluster'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Terraform Plan
+        working-directory: ${{env.working_directory}}
+        env:
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }} # Set environment variables
+          TF_VAR_grafana_cloud_token_k3s: ${{ secrets.GC_TOKEN_K3S }}
+          TF_VAR_grafana_cloud_token_node: ${{ secrets.GC_TOKEN_NODE }}
+        run: |
+          terraform plan -out=tfplan -input=false -var-file *.tfvars
+
+      - name: Upload Terraform Plan file
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan_k8s_cluster
+          path: ${{env.working_directory}}/tfplan
+          retention-days: 5
+
+  terraform-apply-k8s-cluster:
+    #if: github.event_name == 'push'
+    needs: terraform-plan-k8s-cluster
+    name: Terraform Apply K8S cluster infra
+    env:
+      working_directory: './terraform/k8s-cluster'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{env.AWS_REGION_ID}}
+          role-to-assume: ${{ secrets.AWS_DEV_GITHUB_ACTION_ROLE }}
+          role-session-name: GitHubActions
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize Terraform
+        working-directory: ${{env.working_directory}}
+        run: |
+          aws --version
+          terraform version
+          terraform init
+
+      - name: Download Terraform Plan file
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan_k8s_cluster
+          path: ${{env.working_directory}}
+
+      - name: Terraform Apply
+        working-directory: ${{env.working_directory}}
+        env:
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }} # Set environment variables
+          TF_VAR_grafana_cloud_token_k3s: ${{ secrets.GC_TOKEN_K3S }}
+          TF_VAR_grafana_cloud_token_node: ${{ secrets.GC_TOKEN_NODE }}
+        run: |
+          terraform apply -input=false tfplan
