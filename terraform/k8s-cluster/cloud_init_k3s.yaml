@@ -107,7 +107,7 @@ runcmd:
     # Some pause to wait till system will be ready
     sleep 30
     ufw disable
-    curl -sfL https://get.k3s.io | sh -
+    curl -sfL https://get.k3s.io | sh -s - server --kube-apiserver-arg "bind-address=0.0.0.0"
     chmod 644 /etc/rancher/k3s/k3s.yaml
     cp /etc/rancher/k3s/k3s.yaml /home/system.administrator/.kube/conf
     chown system.administrator:system.administrator /home/system.administrator/.kube/conf
