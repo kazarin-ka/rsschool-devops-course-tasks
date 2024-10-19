@@ -1,0 +1,180 @@
+#cloud-config
+hostname: ${hostname}
+manage_etc_hosts: true
+users:
+  - name: ubuntu
+    lock_passwd: true
+  - name: system.administrator
+    gecos: System Administrator
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    lock_passwd: true
+    ssh_authorized_keys:
+        - ${ssh_public_key}
+
+# update on the first boot
+package_update: true
+package_upgrade: true
+# install packages during the first boot
+packages:
+ - htop
+ - vim
+ - tmux
+ - lvm2
+ - net-tools
+ - tree
+ - atop
+ - iotop
+ - jq
+
+# Create manifest for k3s cluster monitoring
+# we will use free plan of grafana cloud to monitor our test cluster
+#   https://grafana.com/products/cloud/
+write_files:
+  - path: /etc/grafana_k8s_values.yaml
+    content: |
+      cluster:
+        name: rs-edu
+      externalServices:
+        prometheus:
+          host: https://prometheus-prod-13-prod-us-east-0.grafana.net
+          basicAuth:
+            username: "1754193"
+            password: ${grafana_cloud_token_k3s}
+        loki:
+          host: https://logs-prod-006.grafana.net
+          basicAuth:
+            username: "976817"
+            password: ${grafana_cloud_token_k3s}
+        tempo:
+          host: https://tempo-prod-04-prod-us-east-0.grafana.net:443
+          basicAuth:
+            username: "971132"
+            password: ${grafana_cloud_token_k3s}
+      metrics:
+        enabled: true
+        alloy:
+          metricsTuning:
+            useIntegrationAllowList: true
+        cost:
+          enabled: true
+        kepler:
+          enabled: true
+        node-exporter:
+          enabled: true
+      logs:
+        enabled: true
+        pod_logs:
+          enabled: true
+        cluster_events:
+          enabled: true
+      traces:
+        enabled: true
+      receivers:
+        grpc:
+          enabled: true
+        http:
+          enabled: true
+        zipkin:
+          enabled: true
+        grafanaCloudMetrics:
+          enabled: false
+      opencost:
+        enabled: true
+        opencost:
+          exporter:
+            defaultClusterId: rs-edu
+          prometheus:
+            external:
+              url: https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom
+      kube-state-metrics:
+        enabled: true
+      prometheus-node-exporter:
+        enabled: true
+      prometheus-operator-crds:
+        enabled: true
+      kepler:
+        enabled: true
+      alloy: {}
+      alloy-events: {}
+      alloy-logs: {}
+
+# For k3s deployment from the begging - just after instance creation
+# And grafana cloud monitoring
+runcmd:
+  - |
+    # Some pause to wait till system will be ready
+    sleep 30
+    ufw disable
+    curl -sfL https://get.k3s.io | sh -s - server --kube-apiserver-arg "bind-address=0.0.0.0"
+    chmod 644 /etc/rancher/k3s/k3s.yaml
+    cp /etc/rancher/k3s/k3s.yaml /home/system.administrator/.kube/conf
+    chown system.administrator:system.administrator /home/system.administrator/.kube/conf
+    apt install -y bash-completion
+    snap install helm --classic
+    # Add and upgrade helm
+    helm repo add grafana https://grafana.github.io/helm-charts
+    helm repo update
+    # install helm chart created earlier
+    export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+    helm upgrade --install --atomic --timeout 300s grafana-k8s-monitoring grafana/k8s-monitoring \
+      --namespace "monitoring" --create-namespace --values /etc/grafana_k8s_values.yaml
+    # install grafana cloud node exporter
+    ARCH="amd64" \
+      GCLOUD_HOSTED_METRICS_URL="https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom/push" \
+      GCLOUD_HOSTED_METRICS_ID="1754193" GCLOUD_SCRAPE_INTERVAL="60s" \
+      GCLOUD_HOSTED_LOGS_URL="https://logs-prod-006.grafana.net/loki/api/v1/push" \
+      GCLOUD_HOSTED_LOGS_ID="976817" \
+      GCLOUD_RW_API_KEY="${grafana_cloud_token_node}" \
+      /bin/sh -c "$(curl -fsSL https://storage.googleapis.com/cloud-onboarding/alloy/scripts/install-linux.sh)"
+    # configure and restart node exporter
+    cat <<EOF >> /etc/alloy/config.alloy
+    discovery.relabel "integrations_node_exporter" {
+      targets = prometheus.exporter.unix.integrations_node_exporter.targets
+    
+      rule {
+        target_label = "instance"
+        replacement  = constants.hostname
+      }
+    
+      rule {
+        target_label = "job"
+        replacement = "integrations/node_exporter"
+      }
+    }
+    
+    prometheus.exporter.unix "integrations_node_exporter" {
+      disable_collectors = ["ipvs", "btrfs", "infiniband", "xfs", "zfs"]
+    
+      filesystem {
+        fs_types_exclude     = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|tmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"
+        mount_points_exclude = "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+)($|/)"
+        mount_timeout        = "5s"
+      }
+    
+      netclass {
+        ignored_devices = "^(veth.*|cali.*|[a-f0-9]{15})$"
+      }
+    
+      netdev {
+        device_exclude = "^(veth.*|cali.*|[a-f0-9]{15})$"
+      }
+    }
+    
+    prometheus.scrape "integrations_node_exporter" {
+      targets    = discovery.relabel.integrations_node_exporter.output
+      forward_to = [prometheus.relabel.integrations_node_exporter.receiver]
+    }
+    
+    prometheus.relabel "integrations_node_exporter" {
+      forward_to = [prometheus.remote_write.metrics_service.receiver]
+    
+      rule {
+        source_labels = ["__name__"]
+        regex         = "node_scrape_collector_.+"
+        action        = "drop"
+      }
+    }
+    EOF
+    systemctl restart alloy.service
