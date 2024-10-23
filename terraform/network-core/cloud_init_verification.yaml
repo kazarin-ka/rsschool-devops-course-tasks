@@ -1,0 +1,27 @@
+#cloud-config
+users:
+  - name: ubuntu
+    lock_passwd: true
+  - name: system.administrator
+    gecos: System Administrator
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    lock_passwd: true
+    ssh_authorized_keys:
+        - ${ssh_public_key}
+
+# update on the first boot
+package_update: true
+package_upgrade: true
+# install packages during the first boot
+packages:
+ - htop
+ - vim
+ - tmux
+ - lvm2
+ - net-tools
+ - tree
+ - atop
+ - iotop
+ - jq

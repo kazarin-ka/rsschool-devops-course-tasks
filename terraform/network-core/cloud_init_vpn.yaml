@@ -1,0 +1,72 @@
+#cloud-config
+users:
+  - name: ubuntu
+    lock_passwd: true
+  - name: system.administrator
+    gecos: System Administrator
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    lock_passwd: true
+    ssh_authorized_keys:
+        - ${ssh_public_key}
+
+# update on the first boot
+package_update: true
+package_upgrade: true
+# install packages during the first boot
+packages:
+ - htop
+ - vim
+ - tmux
+ - lvm2
+ - net-tools
+ - tree
+ - atop
+ - iotop
+ - jq
+
+# For bastion/VPN service configuration - SSH will use alternative port 32100/tcp
+runcmd:
+  - sed -i 's/^#Port 22/Port 32100/' /etc/ssh/sshd_config
+  - systemctl restart ssh
+
+## Alternative way - change whole config
+#cloud-config
+#write_files:
+#  - path: /etc/ssh/sshd_config
+#    content: |
+#      Port 32100
+#      Protocol 2
+#      ListenAddress 0.0.0.0
+#      HostKey /etc/ssh/ssh_host_rsa_key
+#      HostKey /etc/ssh/ssh_host_ecdsa_key
+#      HostKey /etc/ssh/ssh_host_ed25519_key
+#      UsePrivilegeSeparation yes
+#      KeyRegenerationInterval 3600
+#      ServerKeyBits 1024
+#      SyslogFacility AUTH
+#      LogLevel INFO
+#      LoginGraceTime 2m
+#      PermitRootLogin No
+#      StrictModes yes
+#      MaxAuthTries 6
+#      MaxSessions 10
+#      PubkeyAuthentication yes
+#      RhostsRSAAuthentication no
+#      IgnoreRhosts yes
+#      HostbasedAuthentication no
+#      PermitEmptyPasswords no
+#      KbdInteractiveAuthentication no
+#      UsePAM yes
+#      X11Forwarding yes
+#      PrintMotd no
+#      PrintLastLog yes
+#      TCPKeepAlive yes
+#      AcceptEnv LANG LC_*
+#      Subsystem    sftp    /usr/lib/openssh/sftp-server
+#      PasswordAuthentication no
+#
+#runcmd:
+#  - systemctl restart ssh
+
