@@ -52,3 +52,18 @@ locals {
     if net.type == "database"
   ]
 }
+
+output "public_subnets" {
+  description = "List of public subnets"
+  value       = local.public_subnets
+}
+
+output "private_subnets" {
+  description = "List of private subnets"
+  value       = local.private_subnets
+}
+
+output "database_subnets" {
+  description = "List of database subnets"
+  value       = local.database_subnets
+}
