@@ -22,7 +22,7 @@ resource "aws_security_group" "vpn" {
   }
 
   ingress {
-    description = "access to for lets encrypt in pritunl"
+    description = "access for lets encrypt in pritunl"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -35,6 +35,14 @@ resource "aws_security_group" "vpn" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = var.admins_ips
+  }
+
+  ingress {
+    description = "access to nginx proxy"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = var.all_networks
   }
 
   ingress {

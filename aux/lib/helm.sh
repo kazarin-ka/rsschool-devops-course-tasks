@@ -11,9 +11,9 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.
 sudo apt-get update
 sudo apt-get install -y helm
 
-# check helm with nginx installer
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-helm install helm-nginx oci://registry-1.docker.io/bitnamicharts/nginx
+## check helm with nginx installer
+#export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+#helm install helm-nginx oci://registry-1.docker.io/bitnamicharts/nginx
 
 ## check
 #kubectl get pods

@@ -55,6 +55,69 @@ To override default values, specify a custom values.yaml file:
 helm install jenkins ./jenkins-helm-chart --namespace jenkins -f custom-values.yaml
 ```
 
+### Jenkins config
+After deployment Jenkins, visit it web interface (http://<host ip>:30000 by default)
+You woll need to get initial password from node. You can get it via:
+```bash
+DEPLOYMENT_NAME="jenkins" # replace of needed
+NAMESPACE="jenkins" # replace of needed
+jenk_pod_name=$(kubectl get pods --namespace=${NAMESPACE} -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}')
+initial_admin_password=$(kubectl exec -n ${NAMESPACE} -i "${jenk_pod_name}" -- cat /var/jenkins_home/secrets/initialAdminPassword)
+echo "Jenkins init password: ${initial_admin_password}"
+```
+
+Output will be:
+```
+...
+Jenkins init password: df2d8a452e334e5684bba1ae1b4384c8
+```
+
+Use it to create first real admin User.
+
+### Create first job via API
+You also can create your security token for api access (Profile -> security).
+
+After that, create file `job-config.xml`:
+```xml
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Test job to print "Hello world"</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>echo "Hello world"</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
+```
+And run:
+```bash
+## Creating job via api
+jenkins_url="http://<host ip>:30000"
+username="<your login>"
+api_token="<your  API token>"
+# create job
+curl -X POST "${jenkins_url}/createItem?name=HelloWorldJob" \
+    -u "${username}:${api_token}" \
+    -H "Content-Type: application/xml" \
+    --data-binary @job-config.xml
+
+# run job
+curl -X POST "${jenkins_url}/job/HelloWorldJob/build" \
+    -u "${username}:${api_token}"
+```
+
 ## Upgrading the Chart
 
 To upgrade the Jenkins Helm chart with new values or chart updates, use:

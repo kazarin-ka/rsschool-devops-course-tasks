@@ -60,6 +60,14 @@ resource "aws_security_group" "k3s_sg" {
   }
 
   ingress {
+    description = "port range for k3s apps"
+    from_port   = 30000
+    to_port     = 35000
+    protocol    = "tcp"
+    cidr_blocks = [data.terraform_remote_state.network-core.outputs.vpc_cidr] # Entire VPC
+  }
+
+  ingress {
     description = "icmp ping and other messages are allowed"
     from_port   = -1
     to_port     = -1

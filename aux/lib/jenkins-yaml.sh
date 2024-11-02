@@ -39,15 +39,15 @@ jenk_pod_name=$(kubectl get pods --namespace=${NAMESPACE} -o jsonpath='{range .i
 initial_admin_password=$(kubectl exec -n ${NAMESPACE} -i "${jenk_pod_name}" -- cat /var/jenkins_home/secrets/initialAdminPassword)
 echo "Jenkins init password: ${initial_admin_password}"
 
-## Creating job via api
-#jenkins_url="http://192.168.100.100:32000"
-#username="admin"
-#password="admin"
+### Creating job via api
+#jenkins_url="http://"
+#username=""
+#api_token=""
 ## create job
 #curl -X POST "${jenkins_url}/createItem?name=HelloWorldJob" \
 #    -u "${username}:${api_token}" \
 #    -H "Content-Type: application/xml" \
-#    --data-binary @${CONFIG_PATH}/job-config.xml
+#    --data-binary @job-config.xml
 #
 ## run job
 #curl -X POST "${jenkins_url}/job/HelloWorldJob/build" \
