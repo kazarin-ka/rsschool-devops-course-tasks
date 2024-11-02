@@ -9,7 +9,8 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.boot_timeout = 600
   config.vm.box_download_insecure=true
-  #config.vm.synced_folder "conf/", "/opt/conf", owner: "vagrant", group: "vagrant"
+  config.vm.synced_folder "conf/", "/opt/conf", owner: "vagrant", group: "vagrant"
+  config.vm.synced_folder "../helm/", "/opt/helm", owner: "vagrant", group: "vagrant"
   config.vm.provision "init", type: "shell", path: "lib/init.sh"
   
   config.vm.define "k3s" do |config|
@@ -22,6 +23,14 @@ Vagrant.configure("2") do |config|
       server.cpus = 2
       server.memory = "2048"
     end
+    config.vm.provision "k3s", type: "shell", path: "lib/k3s.sh"
+    config.vm.provision "helm", type: "shell", path: "lib/helm.sh"
+
+    ## if you wan to deploy jenkins via yaml manifests
+    #config.vm.provision "k8s-yaml", type: "shell", path: "lib/jenkins-yaml.sh"
+
+    # if you wan to deploy jenkins via helm manifests
+    config.vm.provision "k8s-yaml", type: "shell", path: "lib/jenkins-helm.sh"
 
   end
 
