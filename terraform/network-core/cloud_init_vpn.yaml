@@ -26,47 +26,32 @@ packages:
  - iotop
  - jq
 
+write_files:
+  - path: /etc/nginx/sites-enabled/proxy.conf
+    content: |
+      upstream backend {
+          # replace ip and port with appropriate values
+          server 10.0.1.47:32100;
+      }    
+      server {
+          listen 8080;
+      
+          location / {
+              proxy_pass http://backend;
+      
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+          }
+      }
+
 # For bastion/VPN service configuration - SSH will use alternative port 32100/tcp
 runcmd:
-  - sed -i 's/^#Port 22/Port 32100/' /etc/ssh/sshd_config
-  - systemctl restart ssh
-
-## Alternative way - change whole config
-#cloud-config
-#write_files:
-#  - path: /etc/ssh/sshd_config
-#    content: |
-#      Port 32100
-#      Protocol 2
-#      ListenAddress 0.0.0.0
-#      HostKey /etc/ssh/ssh_host_rsa_key
-#      HostKey /etc/ssh/ssh_host_ecdsa_key
-#      HostKey /etc/ssh/ssh_host_ed25519_key
-#      UsePrivilegeSeparation yes
-#      KeyRegenerationInterval 3600
-#      ServerKeyBits 1024
-#      SyslogFacility AUTH
-#      LogLevel INFO
-#      LoginGraceTime 2m
-#      PermitRootLogin No
-#      StrictModes yes
-#      MaxAuthTries 6
-#      MaxSessions 10
-#      PubkeyAuthentication yes
-#      RhostsRSAAuthentication no
-#      IgnoreRhosts yes
-#      HostbasedAuthentication no
-#      PermitEmptyPasswords no
-#      KbdInteractiveAuthentication no
-#      UsePAM yes
-#      X11Forwarding yes
-#      PrintMotd no
-#      PrintLastLog yes
-#      TCPKeepAlive yes
-#      AcceptEnv LANG LC_*
-#      Subsystem    sftp    /usr/lib/openssh/sftp-server
-#      PasswordAuthentication no
-#
-#runcmd:
-#  - systemctl restart ssh
-
+  - |
+    sed -i 's/^#Port 22/Port 32100/' /etc/ssh/sshd_config
+    systemctl restart ssh
+    apt install -y nginx
+    rm /etc/nginx/sites-enabled/default
+    systemctl restart nginx
+    

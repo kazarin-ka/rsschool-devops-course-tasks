@@ -65,6 +65,11 @@ terraform apply
 ```
 9. After provisioning is complete, your EC2 instances will be set up as master and worker nodes running K3s, with monitoring integrated with Grafana Cloud.
 
+### Provisioning
+During cluster creation, Cloud Init system will use `cloud_init_k3s.yaml` config as a reference.
+
+It will install help, clone this repo and use jenkins chart from `helm/` folder to deploy jenkins in k3s cluster.
+
 ## Cleanup
 To destroy the provisioned infrastructure and clean up resources, run:
 ```bash

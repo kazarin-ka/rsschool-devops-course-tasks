@@ -1,0 +1,10 @@
+# https://helm.sh/docs/topics/charts/#the-chartyaml-file
+apiVersion: v2
+name: jenkins-helm-chart
+description: A Helm chart to deploy Jenkins
+version: 0.1.0
+appVersion: "0.1.0"
+maintainers:
+  - name: Kirill Kazarin
+    email: ka.kazarin@gmail.com
+    url: https://github.com/kazarin-ka

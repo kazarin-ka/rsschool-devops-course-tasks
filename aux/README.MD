@@ -4,9 +4,13 @@ This repository contains a simple setup for deploying a single-node K3s cluster 
 
 ## Repository Structure
 
-- README.md: Documentation for this setup.
-- Vagrantfile: Configuration file for Vagrant, which defines the virtual machine and provisions it with K3s.
-- lib/init.sh: Shell script used by Vagrant to install and set up K3s on the virtual machine.
+- `README.md`: Documentation for this setup.
+- `Vagrantfile`: Configuration file for Vagrant, which defines the virtual machine and provisions it with K3s.
+- `lib/init.sh`: Shell script used by Vagrant to install some iniital set of pakages.
+- `lib/k3s.sh`: Shell script used by Vagrant to install and set up K3s on the virtual machine.
+- `lib/helm.sh`: Shell script used by Vagrant to install helm
+- `lib/jenkins-helm.sh`: Shell script used by Vagrant to deploy jenkins by simple set of yaml manifests, located in `conf/yaml`
+- `lib/jenkins-yaml.sh`: Shell script used by Vagrant to install deploy jenkins by helm (testing helm charts)
 
 ## Purpose
 
