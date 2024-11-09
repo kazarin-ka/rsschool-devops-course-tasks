@@ -32,6 +32,9 @@ Vagrant.configure("2") do |config|
     ## if you wan to deploy jenkins via helm manifests
     #config.vm.provision "k8s-yaml", type: "shell", path: "lib/jenkins-helm.sh"
 
+    ## wp check
+    config.vm.provision "k8s-yaml", type: "shell", path: "lib/wordpress-helm.sh"
+
   end
 
 end
