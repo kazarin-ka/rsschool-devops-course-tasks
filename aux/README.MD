@@ -11,6 +11,7 @@ This repository contains a simple setup for deploying a single-node K3s cluster 
 - `lib/helm.sh`: Shell script used by Vagrant to install helm
 - `lib/jenkins-helm.sh`: Shell script used by Vagrant to deploy jenkins by simple set of yaml manifests, located in `conf/yaml`
 - `lib/jenkins-yaml.sh`: Shell script used by Vagrant to install deploy jenkins by helm (testing helm charts)
+- `lib/wordpress-helm.sh`: Shell script used by Vagrant to install deploy WP+Mysql by helm (testing helm charts)
 
 ## Purpose
 
